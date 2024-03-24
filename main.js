@@ -1,6 +1,4 @@
 
-//Checklist 2
-
 class Tarea {
     constructor(id, descripcion, completada) {
         this.id = id;
@@ -13,18 +11,14 @@ let listaTareas = [];
 let historialTareasCompletadas = [];
 
 function agregarTarea() {
-    let descripcion = prompt("Ingrese la nueva tarea:");
-    if (descripcion !== null) { 
-        descripcion = descripcion.trim();
-        if (descripcion !== "") {
-            let nuevaTarea = new Tarea(listaTareas.length + 1, descripcion, false);
-            listaTareas.push(nuevaTarea);
-            alert("Tarea agregada: " + descripcion);
-        } else {
-            alert("La descripción de la tarea no puede estar vacía.");
-        }
+    let descripcion = document.getElementById("nuevaTareaInput").value.trim();
+    if (descripcion !== "") {
+        let nuevaTarea = new Tarea(listaTareas.length + 1, descripcion, false);
+        listaTareas.push(nuevaTarea);
+        alert("Tarea agregada: " + descripcion);
+        document.getElementById("nuevaTareaInput").value = ""; // Limpiar el campo de entrada después de agregar la tarea
     } else {
-        alert("Operación cancelada."); 
+        alert("La descripción de la tarea no puede estar vacía.");
     }
 }
 
@@ -42,51 +36,35 @@ function verTareas() {
 }
 
 function completarTarea() {
-    let tareasDisponibles = listaTareas.filter(tarea => !tarea.completada);
-    if (tareasDisponibles.length === 0) {
-        alert("No hay tareas disponibles para marcar como completadas.");
+    let tareaId = document.getElementById("tareaInput").value;
+    if (tareaId.trim() === "") {
+        alert("Por favor, ingrese el ID de la tarea.");
+        return;
+    }
+    
+    let id = parseInt(tareaId);
+    if (isNaN(id) || id <= 0 || id > listaTareas.length) {
+        alert("ID de tarea inválido.");
+        return;
+    }
+
+    let tarea = listaTareas.find(t => t.id === id);
+    if (tarea.completada) {
+        alert("Esta tarea ya está completada.");
     } else {
-        let mensaje = "Seleccione la tarea que desea marcar como completada:\n\n";
-        tareasDisponibles.forEach(function (tarea, index) {
-            mensaje += (index + 1) + ". " + tarea.descripcion + "\n";
-        });
-        let indice = prompt(mensaje);
-        indice = parseInt(indice);
-        if (isNaN(indice) || indice < 1 || indice > tareasDisponibles.length) {
-            alert("Índice inválido.");
-        } else {
-            let tareaCompletada = listaTareas.find(tarea => tarea.id === tareasDisponibles[indice - 1].id);
-            tareaCompletada.completada = true;
-            tareaCompletada.fechaCompletada = new Date();
-            historialTareasCompletadas.push(tareaCompletada);
-            alert("Tarea marcada como completada.");
-        }
+        tarea.completada = true;
+        tarea.fechaCompletada = new Date();
+        historialTareasCompletadas.push(tarea);
+        alert("Tarea marcada como completada.");
     }
 }
 
-function borrarTarea() {
-    if (listaTareas.length === 0) {
-        alert("No hay tareas para borrar.");
-    } else {
-        let mensaje = "Seleccione la tarea que desea borrar:\n\n";
-        listaTareas.forEach(function (tarea, index) {
-            let estado = tarea.completada ? "completada" : "pendiente";
-            mensaje += (index + 1) + ". " + tarea.descripcion + " - Estado: " + estado + "\n";
-        });
-        let indice = prompt(mensaje);
-        indice = parseInt(indice);
-        if (isNaN(indice) || indice < 1 || indice > listaTareas.length) {
-            alert("Índice inválido.");
-        } else {
-            let tareaBorrada = listaTareas.find(tarea => tarea.id === indice);
-            listaTareas = listaTareas.filter(tarea => tarea.id !== tareaBorrada.id);
-            alert("Tarea borrada.");
 
-            listaTareas.forEach(function (tarea, index) {
-                tarea.id = index + 1;
-            });
-        }
+function verify(id, arr) {
+    if (arr.some(tarea => tarea.id === id && !tarea.completada)) {
+        return true;
     }
+    return false;
 }
 
 function mostrarTareasCompletadas() {
@@ -98,11 +76,20 @@ function mostrarTareasCompletadas() {
             mensaje += (index + 1) + ". " + tarea.descripcion + "\n";
         });
         alert(mensaje);
+        localStorage.setItem('historialTareasCompletadas', JSON.stringify(historialTareasCompletadas));
+
     }
 }
 
-document.getElementById("agregarBtn").addEventListener("click", agregarTarea);
-document.getElementById("verBtn").addEventListener("click", verTareas);
-document.getElementById("completarBtn").addEventListener("click", completarTarea);
-document.getElementById("borrarBtn").addEventListener("click", borrarTarea);
-document.getElementById("mostrarBtn").addEventListener("click", mostrarTareasCompletadas);
+
+document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("agregarBtn").addEventListener("click", agregarTarea);
+    document.getElementById("verBtn").addEventListener("click", verTareas);
+    document.getElementById("completarBtn").addEventListener("click", function() {
+        console.log("Botón de completar tarea clickeado."); 
+        completarTarea(); 
+    });
+    document.getElementById("mostrarBtn").addEventListener("click", mostrarTareasCompletadas);
+});
+
+
